@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3. Yasir OK Devri</title>
+  <meta name="description" content="50 günde 1000 İngilizce kelime öğren: günlük kelime kartları, sesli telaffuz ve sınavlarla ilerle.">
+  <meta name="theme-color" content="#2f6bff">
+
+  <!-- Sosyal medyada paylaşım önizlemesi -->
+  <meta property="og:title" content="50 Günde 1000 Kelime">
+  <meta property="og:description" content="Her gün 20 yeni İngilizce kelime. Sınavı geç, sıradaki günün kilidini aç.">
+  <meta property="og:type" content="website">
+
+  <!-- Ayrı dosya gerektirmeyen basit favicon (SVG, data URI) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%232f6bff'/%3E%3Ctext x='32' y='43' font-size='30' font-weight='700' text-anchor='middle' fill='white' font-family='sans-serif'%3E50%3C/text%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="style.css">
+  <!-- defer: HTML ayrıştırıldıktan sonra çalışır, DOM hazır olur -->
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <noscript>Bu uygulamanın çalışması için JavaScript'in açık olması gerekir.</noscript>
+
+  <!-- ÜST BÖLÜM: başlık + genel ilerleme -->
+  <header class="top">
+    <div class="top__inner">
+      <h1 class="top__title">WORDS</h1>
+      <p class="top__sub">Bir lisan bir insan, başka bir lisan bambaşka bir insan</p>
+
+      <div class="progress" aria-live="polite">
+        <div class="progress__bar"
+             id="progressBar"
+             role="progressbar"
+             aria-label="Tamamlanan gün sayısı"
+             aria-valuemin="0"
+             aria-valuemax="50"
+             aria-valuenow="0">
+          <div class="progress__fill" id="progressFill"></div>
+        </div>
+        <p class="progress__text">
+          <span id="daysDone">0</span> / 50 gün tamamlandı &middot;
+          <span id="wordsDone">0</span> kelime öğrenildi
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- YOL HARİTASI: daireler script.js tarafından buraya eklenir -->
+  <main class="roadmap-wrap">
+    <div class="roadmap" id="roadmap">
+      <!-- Daireleri birleştiren yolların çizildiği katman -->
+      <svg class="roadmap__lines" id="roadmapLines" aria-hidden="true"></svg>
+      <!-- Günlerin listesi -->
+      <ol class="roadmap__list" id="roadmapList"></ol>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <button type="button" class="link-btn" id="resetBtn">İlerlemeyi sıfırla</button>
+  </footer>
+
+  <!-- GÜN PENCERESİ: <dialog> ile yerleşik modal (Esc ile kapanır, odak yönetimi hazır).
+       İçinde üç görünüm var: Çalışma -> Sınav -> Sonuç. Hangisi görünür olacağını script.js belirler. -->
+  <dialog class="modal" id="dayModal" aria-labelledby="modalTitle">
+    <div class="modal__body">
+
+      <!-- Pencere başlığı (üç görünümde de ortak) -->
+      <header class="modal__head">
+        <div>
+          <p class="modal__badge" id="modalBadge"></p>
+          <h2 class="modal__title" id="modalTitle"></h2>
+          <p class="modal__range" id="modalRange"></p>
+        </div>
+        <button type="button" class="modal__x" id="modalClose" aria-label="Pencereyi kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+
+      <!-- ============ 1) ÇALIŞMA GÖRÜNÜMÜ ============ -->
+      <div id="studyView">
+        <section class="study" id="study">
+          <div class="study__meter">
+            <span class="study__counter" id="studyCounter">1 / 20</span>
+            <div class="study__bar" aria-hidden="true"><div class="study__fill" id="studyFill"></div></div>
+
+            <!-- Aksan seçimi: ABD / İngiltere -->
+            <div class="accent" role="group" aria-label="Telaffuz aksanı">
+              <button type="button" class="accent__btn" data-accent="us" aria-pressed="true">US</button>
+              <button type="button" class="accent__btn" data-accent="uk" aria-pressed="false">UK</button>
+            </div>
+          </div>
+
+          <!-- Kelime kartı: içerik script.js tarafından doldurulur -->
+          <article class="card" id="card" aria-live="polite">
+            <div class="card__wordrow">
+              <h3 class="card__word" id="cardWord" lang="en"></h3>
+              <button type="button" class="speak speak--lg" id="speakWord" aria-label="Kelimeyi dinle">
+                <!-- Hoparlör ikonu -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+              </button>
+            </div>
+
+            <p class="card__meaning" id="cardMeaning"></p>
+
+            <div class="card__example">
+              <div class="card__examplerow">
+                <p class="card__en" id="cardExample" lang="en"></p>
+                <button type="button" class="speak speak--sm" id="speakExample" aria-label="Örnek cümleyi dinle">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+                </button>
+              </div>
+              <p class="card__tr" id="cardExampleTr"></p>
+            </div>
+          </article>
+
+          <!-- Kart gezinme düğmeleri -->
+          <div class="study__nav">
+            <button type="button" class="btn btn--ghost" id="prevBtn">Önceki</button>
+            <button type="button" class="btn btn--ghost" id="nextBtn">Sonraki</button>
+          </div>
+        </section>
+
+        <!-- Bu güne ait kelime verisi yoksa gösterilir -->
+        <p class="study__empty" id="studyEmpty" hidden>
+          Bu günün kelimeleri henüz eklenmedi.
+        </p>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--primary btn--block" id="quizBtn">Sınava Başla</button>
+          <!-- Sadece test modunda görünür (adres sonuna ?test=1 eklenirse). Canlıda gizlidir. -->
+          <button type="button" class="link-btn" id="modalComplete" hidden>
+            Test: günü sınavsız tamamla
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ 2) SINAV GÖRÜNÜMÜ ============ -->
+      <div id="quizView" hidden>
+        <div class="study__meter">
+          <span class="study__counter study__counter--wide" id="quizCounter">Soru 1 / 20</span>
+          <div class="study__bar" aria-hidden="true"><div class="study__fill" id="quizFill"></div></div>
+          <span class="quiz__score" id="quizScore">Doğru: 0</span>
+        </div>
+
+        <article class="qcard">
+          <p class="qcard__dir" id="quizDir"></p>
+          <div class="qcard__promptrow">
+            <h3 class="qcard__prompt" id="quizPrompt"></h3>
+            <!-- İngilizce kelime sorulduğunda telaffuz için -->
+            <button type="button" class="speak speak--md" id="speakQuiz" aria-label="Kelimeyi dinle" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+            </button>
+          </div>
+        </article>
+
+        <!-- 4 şık: script.js tarafından üretilir -->
+        <div class="options" id="quizOptions"></div>
+
+        <p class="quiz__feedback" id="quizFeedback" aria-live="polite"></p>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--primary btn--block" id="quizNext" hidden>Sonraki soru</button>
+        </div>
+      </div>
+
+      <!-- ============ 3) SONUÇ GÖRÜNÜMÜ ============ -->
+      <div id="resultView" hidden>
+        <div class="result" id="resultBox">
+          <!-- Yüzde halkası: --pct değişkenini script.js verir -->
+          <div class="result__ring" id="resultRing">
+            <div class="result__ringin">
+              <span class="result__pct" id="resultPct"></span>
+              <span class="result__frac" id="resultFrac"></span>
+            </div>
+          </div>
+          <h3 class="result__title" id="resultTitle"></h3>
+          <p class="result__text" id="resultText"></p>
+
+          <!-- Yanlış yapılan kelimeler -->
+          <div class="result__wrong" id="resultWrong" hidden>
+            <p class="result__wrongtitle">Tekrar etmen gerekenler</p>
+            <ul class="result__wronglist" id="resultWrongList"></ul>
+          </div>
+        </div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--primary btn--block" id="resultPrimary"></button>
+          <button type="button" class="btn btn--ghost btn--block" id="resultSecondary"></button>
+        </div>
+      </div>
+
+    </div>
+  </dialog>
+
+</body>
+</html>
